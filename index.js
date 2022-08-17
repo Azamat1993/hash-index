@@ -62,34 +62,3 @@ http.createServer(function(req, res) {
             return res.end('Invalid parameters');
     }
 }).listen(9000);
-
-
-
-// const argv = yargs.command(
-//     'set', 'Sets value by key to db', {
-//         key: {
-//             description: 'Key of a record',
-//             alias: 'k',
-//             type: 'string'
-//         },
-//         value: {
-//             description: 'Value of a record',
-//             alias: 'v',
-//             type: 'string'
-//         }
-//     }
-// ).argv;
-
-// if (argv._.includes('set')) { 
-//     fs.appendFile('db', '', function(err) {});
-// } else if (argv._.includes('get')) {
-//     fs.open('db', 'r+', function (err, fd) {
-//         fs.read(fd, buffer, 0, buffer.length,
-//             2, function (err, bytes) {
-//                 if (bytes > 0) {
-//                     console.log(buffer.toString());
-//                 }
-//                 console.log(bytes);
-//         });
-//     });
-// }
