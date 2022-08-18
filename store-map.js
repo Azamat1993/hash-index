@@ -2,9 +2,11 @@ const fs = require('fs');
 const config = require('./config');
 
 class StoreMap {
-    constructor() {
+    constructor(fileName) {
         this.map = new Map();
-        this.dbFileName = config.dbFileName;
+        this.dbFileName = config.dbFileName + fileName;
+        this.chunkSize = 0;
+        this.maxChunkSize = config.maxChunkSize;
     }
     async setValue(key, value) {
         return new Promise((resolve, reject) => {
@@ -17,6 +19,7 @@ class StoreMap {
                     start: stats.size,
                     size: strToWrite.length,
                 });
+                this.chunkSize += strToWrite.length;
                 fs.appendFile(this.dbFileName, strToWrite, function(err) {
                     if (err) {
                         return void reject(`Append to file error ${err}`);
@@ -30,6 +33,10 @@ class StoreMap {
 
     hasValue(key) {
         return this.map.has(key);
+    }
+
+    canSetValue(value) {
+        return this.chunkSize + value.length < this.maxChunkSize;
     }
 
     async getValue(key) {

@@ -9,6 +9,11 @@ class StoreMapManager {
 
     async addRecord(key, value) {
         const record = value;
+        
+        if (!this._recentStoreMap.canSetValue(record)) {
+            this._addStoreMap();
+        }
+
         return await this._recentStoreMap.setValue(key, record);
     }
 
