@@ -195,6 +195,16 @@ describe('StoreMap', () => {
             expect(retrievedValue).toBe(expectedValue);
         });
 
+        test('should retrieve only value', async () => {
+            const expectedValue = `${aKey}2:${aValue}2\\n`;
+            await storeMap.store(aKey, aValue);
+            await storeMap.store(`${aKey}2`, `${aValue}2`);
+            await storeMap.store(`${aKey}3`, `${aValue}3`);
+            const retrievedValue = await storeMap.retrieve(`${aKey}2`);
+            expect(retrievedValue).toBe(expectedValue);
+
+        });
+
         test('should throw an exception, if not found', async () => {
             await storeMap.store(aKey, aValue);
             await expect(storeMap.retrieve(aKey + '2')).rejects.toThrow();
