@@ -44,6 +44,22 @@ class StoreMapManager {
         }
     }
 
+    async retrieve(key, currentStoreMap = this._storeMaps.length - 1) {
+        try {
+            return await this._storeMaps[currentStoreMap].retrieve(key);
+        } catch(err) {
+            if (err instanceof utils.NotFoundException) {
+                if (currentStoreMap > 0) {
+                    return await this.retrieve(key, currentStoreMap - 1);
+                } else {
+                    return null;
+                }
+            } else {
+                throw err;
+            }
+        }
+    }
+
     get _recentStoreMap () {
         if (this._storeMaps.length === 0) {
             this._addStoreMap();

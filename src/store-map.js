@@ -69,7 +69,7 @@ class StoreMap {
         utils.required(key, 'Key is required');
 
         if (!this.hashTable.has(key)) {
-            utils.expection('Value by key ' + key + ' does not exist.');
+            throw new utils.NotFoundException('Value by key ' + key + ' does not exist.');
         }
 
         const {

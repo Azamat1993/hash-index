@@ -107,6 +107,53 @@ describe(StoreMapManager.name, () => {
     });
 
     describe('#retrieve', () => {
-        
+        const prefix = 'db';
+        const dir = './test';
+        const aKey = 'aKey';
+        const aValue = 'aValue';
+        let storeMapManager;
+
+        beforeEach(() => {
+            storeMapManager = new StoreMapManager(dir + '/' + prefix);
+        });
+
+        afterEach(() => {
+            testUtils.deleteWithPrefix(dir, prefix);
+        });
+
+        test('should retrieve, when only one store map exists', async () => {
+            await storeMapManager.store(aKey, aValue);
+            await storeMapManager.store(`${aKey}2`, `${aValue}2`);
+            await storeMapManager.store(`${aKey}3`, `${aValue}3`);
+
+            const result = await storeMapManager.retrieve(`${aKey}2`);
+            expect(result).toBe(`${aKey}2:${aValue}2\\n`);
+        });
+
+        test('should retrieve from older files, if not present in recent', async () => {
+            storeMapManager = new StoreMapManager(dir + '/' + prefix, 30);
+            await storeMapManager.store(aKey, aValue);
+            await storeMapManager.store(`${aKey}2`, `${aValue}2`);
+            await storeMapManager.store(`${aKey}3`, `${aValue}3`);
+
+            const dbFiles = await testUtils.filesWithPrefix(dir, prefix);
+            expect(dbFiles.length).toBe(2);
+
+            let result = await storeMapManager.retrieve(`${aKey}3`);
+            expect(result).toBe(`${aKey}3:${aValue}3\\n`);
+
+            result = await storeMapManager.retrieve(`${aKey}`);
+            expect(result).toBe(`${aKey}:${aValue}\\n`);
+        });
+
+        test('should return null, if not found', async () => {
+            storeMapManager = new StoreMapManager(dir + '/' + prefix, 30);
+            await storeMapManager.store(aKey, aValue);
+            await storeMapManager.store(`${aKey}2`, `${aValue}2`);
+            await storeMapManager.store(`${aKey}3`, `${aValue}3`);
+            
+            const result = await storeMapManager.retrieve(`${aKey}4`);
+            expect(result).toBeNull();
+        });
     });
 });

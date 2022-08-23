@@ -7,9 +7,11 @@ function exception(errorMessage) {
 }
 
 class NotEnoughSpaceException extends Error {}
+class NotFoundException extends Error {}
 
 module.exports = {
     required,
     exception,
     NotEnoughSpaceException,
+    NotFoundException,
 };
