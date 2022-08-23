@@ -155,5 +155,20 @@ describe(StoreMapManager.name, () => {
             const result = await storeMapManager.retrieve(`${aKey}4`);
             expect(result).toBeNull();
         });
+
+        test('should get only recent record', async () => {
+            storeMapManager = new StoreMapManager(dir + '/' + prefix, 30);
+            await storeMapManager.store(aKey, aValue);
+            let result = await storeMapManager.retrieve(`${aKey}`);
+            expect(result).toBe(`${aKey}:${aValue}\\n`);
+
+            await storeMapManager.store(`${aKey}2`, `${aValue}2`);
+            result = await storeMapManager.retrieve(`${aKey}`);
+            expect(result).toBe(`${aKey}:${aValue}\\n`);
+
+            await storeMapManager.store(`${aKey}`, `${aValue}3`);
+            result = await storeMapManager.retrieve(`${aKey}`);
+            expect(result).toBe(`${aKey}:${aValue}3\\n`);
+        });
     });
 });

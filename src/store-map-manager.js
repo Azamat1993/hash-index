@@ -68,7 +68,12 @@ class StoreMapManager {
     }
 
     _addStoreMap() {
-        this._storeMaps.push(new StoreMap(this._generateFileName(), this.maxSpacePerStoreMap));
+        this._storeMaps.push(
+            new StoreMap(
+                this._generateFileName(), 
+                this.maxSpacePerStoreMap,
+            ),
+        );
     }
 
     _generateFileName() {
