@@ -1,4 +1,3 @@
-const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 
 const StoreMap = require('../src/store-map');
@@ -146,6 +145,8 @@ describe('StoreMap', () => {
             const fileStat = await fs.promises.stat(fileName);
             expect((expectedContent.length + fileStat.size) > maxSpace).toBe(true);
             await expect(storeMap.store(aKey, aValue)).rejects.toThrow();
+            const fileContent = await fs.promises.readFile(fileName, 'utf-8');
+            expect(fileContent).toBe(expectedContent);
         });
     });
 

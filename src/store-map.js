@@ -49,7 +49,7 @@ class StoreMap {
         const valueToWrite = this._encode(key, value);
 
         if (!this._enoughSpace(valueToWrite)) {
-            utils.exception('Not enough space');
+            throw new utils.NotEnoughSpaceException('Not enough space');
         }
 
         try {
