@@ -211,4 +211,24 @@ describe('StoreMap', () => {
             await expect(storeMap.retrieve(aKey + '2')).rejects.toThrow();
         });
     });
+
+    describe('#buildFromFile', () => {
+        const aKey = 'aKey';
+        const aValue = 'aValue';
+
+        afterEach(() => {
+            if (fs.existsSync(fileName)) {
+                fs.unlinkSync(fileName);
+            }
+        });
+
+        test('should build StoreMap from file', async () => {
+            const contentToRead = `${aKey}:${aValue}\\n${aKey}2:${aValue}2\\n`;
+            await fs.promises.writeFile(fileName, contentToRead);
+            const storeMap = StoreMap.buildFromFile(fileName);
+
+            const value1 = await storeMap.retrieve(aKey);
+            expect(value1).toBe(aValue);
+        });
+    });
 });

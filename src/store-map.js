@@ -89,6 +89,10 @@ class StoreMap {
         });
     }
 
+    async buildFromFile(fileName) {
+        
+    }
+
     _enoughSpace(value) {
         return this._currentSpace + value.length <= this.maxSpace;
     }
