@@ -222,13 +222,14 @@ describe('StoreMap', () => {
             }
         });
 
-        test('should build StoreMap from file', async () => {
+        test('should throw an error, if file to read does not exist', async () => {
+            await expect(StoreMap.buildFromFile(fileName)).rejects.toThrow();
+        });
+
+        test('should not throw an error, if file exists', async () => {
             const contentToRead = `${aKey}:${aValue}\\n${aKey}2:${aValue}2\\n`;
             await fs.promises.writeFile(fileName, contentToRead);
-            const storeMap = StoreMap.buildFromFile(fileName);
-
-            const value1 = await storeMap.retrieve(aKey);
-            expect(value1).toBe(aValue);
+            await expect(StoreMap.buildFromFile(fileName)).resolves.not.toThrow();
         });
     });
 });

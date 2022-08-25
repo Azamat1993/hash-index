@@ -89,8 +89,23 @@ class StoreMap {
         });
     }
 
-    async buildFromFile(fileName) {
-        
+    async readFile() {
+        if (this._hashTable.size !== 0) {
+            utils.exception('Cannot read file, when hash table have values');
+        }
+
+        // checks whether file exists.
+        await fs.promises.access(this.fileName);
+
+        return new Promise((resolve, reject) => {
+            resolve();
+        });
+    }
+
+    static async buildFromFile(fileName) {
+        const storeMap = new StoreMap(fileName);
+        await storeMap.readFile();
+        return storeMap;
     }
 
     _enoughSpace(value) {
