@@ -231,5 +231,12 @@ describe('StoreMap', () => {
             await fs.promises.writeFile(fileName, contentToRead);
             await expect(StoreMap.buildFromFile(fileName)).resolves.not.toThrow();
         });
+
+        test('should create map from file', async () => {
+            const contentToRead = `${aKey}:${aValue}\\n${aKey}2:${aValue}2\\n`;
+            await fs.promises.writeFile(fileName, contentToRead);
+            const storeMap = await StoreMap.buildFromFile(fileName);
+            expect(Array.from(storeMap.hashTable.keys())).toEqual([aKey, `${aKey}2`]);
+        });
     });
 });

@@ -97,9 +97,20 @@ class StoreMap {
         // checks whether file exists.
         await fs.promises.access(this.fileName);
 
-        return new Promise((resolve, reject) => {
-            resolve();
-        });
+        try {
+            const contents = await fs.promises.readFile(this.fileName, { encoding: 'utf-8'});
+            const parts = contents.split('\\n');
+            
+            for(const part of parts) {
+                if (part) {
+                    const [key, value] = part.split(':');
+
+                    this._hashTable.set(key, value);
+                }
+            }
+        } catch(err) {
+            utils.exception('Error while trying to read a file', this.fileName, err)
+        }
     }
 
     static async buildFromFile(fileName) {
