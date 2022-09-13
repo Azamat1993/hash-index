@@ -238,5 +238,23 @@ describe('StoreMap', () => {
             const storeMap = await StoreMap.buildFromFile(fileName);
             expect(Array.from(storeMap.hashTable.keys())).toEqual([aKey, `${aKey}2`]);
         });
+
+        test('should work, if value is of object type', async () => {
+            const objValue = {'key': 'value'};
+            const contentToRead = `${aKey}:${JSON.stringify(objValue)}\\n${aKey}2:${aValue}2\\n`;
+
+            await fs.promises.writeFile(fileName, contentToRead);
+            const storeMap = await StoreMap.buildFromFile(fileName);
+
+            expect(Array.from(storeMap.hashTable.keys())).toEqual([aKey, `${aKey}2`]);
+        });
+
+        test('value should be offset in file', async () => {
+            const contentToRead = `${aKey}:${aValue}\\n${aKey}2:${aValue}2\\n`;
+            await fs.promises.writeFile(fileName, contentToRead);
+            const storeMap = await StoreMap.buildFromFile(fileName);
+            expect(storeMap.hashTable.get(aKey)).toBe(0);
+            expect(storeMap.hashTable.get(`${aKey}2`)).toBe(aKey.length + ':'.length + aValue.length + '\\n'.length);
+        });
     });
 });

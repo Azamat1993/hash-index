@@ -90,6 +90,18 @@ class StoreMap {
     }
 
     async readFile() {
+        const _getKeyFromPart = (part) => {
+            let result = '';
+
+            for(let i = 0; i < part.length; i++) {
+                if (part[i] === ':') {
+                    break;
+                }
+                result += part[i];
+            }
+            return result;
+        }
+
         if (this._hashTable.size !== 0) {
             utils.exception('Cannot read file, when hash table have values');
         }
@@ -100,16 +112,21 @@ class StoreMap {
         try {
             const contents = await fs.promises.readFile(this.fileName, { encoding: 'utf-8'});
             const parts = contents.split('\\n');
-            
-            for(const part of parts) {
-                if (part) {
-                    const [key, value] = part.split(':');
+            let currentOffset = 0;
 
-                    this._hashTable.set(key, value);
+            for(let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                if (part) {
+                    const key = _getKeyFromPart(part);
+
+                    this._hashTable.set(key, currentOffset);
+
+                    currentOffset += part.length;
+                    currentOffset += '\\n'.length;
                 }
             }
         } catch(err) {
-            utils.exception('Error while trying to read a file', this.fileName, err)
+            utils.exception(`Error while trying to read a file ${err}`);
         }
     }
 
