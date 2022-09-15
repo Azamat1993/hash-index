@@ -105,7 +105,7 @@ class StoreMap {
             for(let i = 0; i < parts.length; i++) {
                 const part = parts[i];
                 if (part) {
-                    const key = this._getKeyFromPart(part);
+                    const key = utils.getKeyFromPart(part);
 
                     this._hashTable.set(key, currentOffset);
 
@@ -130,18 +130,6 @@ class StoreMap {
 
     _encode(key, value) {
         return `${key}:${value}\\n`;
-    }
-
-    _getKeyFromPart(part) {
-        let result = '';
-
-        for(let i = 0; i < part.length; i++) {
-            if (part[i] === ':') {
-                break;
-            }
-            result += part[i];
-        }
-        return result;
     }
 }
 

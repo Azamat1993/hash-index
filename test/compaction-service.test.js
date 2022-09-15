@@ -2,7 +2,7 @@ const fs = require('fs');
 const CompactionService = require('../src/compaction-service');
 
 describe(CompactionService.name, () => {
-    const fileName = 'db-test';
+    const fileName = 'db-test-c';
     const newFileName = 'db-test-compacted';
     let service;
 
@@ -44,6 +44,30 @@ describe(CompactionService.name, () => {
             await fs.promises.writeFile(fileName, expectedContent);
             await service.compact(fileName, newFileName);
             expect(fs.existsSync(newFileName)).toBe(true);
+        });
+
+        test('should remove compacted file', async () => {
+            const expectedContent = 'my-content';
+            await fs.promises.writeFile(fileName, expectedContent);
+            await service.compact(fileName, newFileName);
+            expect(fs.existsSync(fileName)).toBe(false);
+        });
+
+        test('should create new file as is, if no duplicated values exist', async () => {
+            const expectedContent = 'key:value\\nkey2:value2';
+            await fs.promises.writeFile(fileName, expectedContent);
+            await service.compact(fileName, newFileName);
+            const newFileContent = await fs.promises.readFile(newFileName, 'utf-8');
+            expect(newFileContent).toBe(expectedContent);
+        });
+
+        test('should create new file without duplicates', async () => {
+            const initialContent = 'key:value\\nkey2:value2\\nkey:value4';
+            const expectedContent = 'key2:value2\\nkey:value4';
+            await fs.promises.writeFile(fileName, initialContent);
+            await service.compact(fileName, newFileName);
+            const newFileContent = await fs.promises.readFile(newFileName, 'utf-8');
+            expect(newFileContent).toBe(expectedContent);
         });
     });
 });
