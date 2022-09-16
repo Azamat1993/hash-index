@@ -3,6 +3,7 @@ const CompactionService = require('../src/compaction-service');
 
 describe(CompactionService.name, () => {
     const fileName = 'db-test-c';
+    const fileName2 = 'db-test-c-2';
     const newFileName = 'db-test-compacted';
     let service;
 
@@ -68,6 +69,46 @@ describe(CompactionService.name, () => {
             await service.compact(fileName, newFileName);
             const newFileContent = await fs.promises.readFile(newFileName, 'utf-8');
             expect(newFileContent).toBe(expectedContent);
+        });
+    });
+
+    describe('#compactAndMerge', () => {
+        test('should throw an error, if provided files does not exist', async () => {
+            await expect(service.compactAndMerge([fileName, fileName2], '')).rejects.toThrow();
+        });
+
+        test('should throw an error, if provided files array is empty', async () => {
+            await expect(service.compactAndMerge([], '')).rejects.toThrow();
+        });
+
+        test('should throw an error, if provided files array is not an array', async () => {
+            await expect(service.compactAndMerge(true, '')).rejects.toThrow();
+        });
+
+        test('should throw an error, if newFileName is not provided', async () => {
+            await expect(service.compactAndMerge([fileName])).rejects.toThrow();
+        });
+
+        test('should throw an error, if new file is already exists', async () => {
+            const expectedContent = 'my-content';
+            await fs.promises.writeFile(fileName, expectedContent);
+            await fs.promises.writeFile(newFileName, expectedContent);
+
+            await expect(service.compactAndMerge([fileName], newFileName)).rejects.toThrow();
+        });
+
+        test('should return new file name, which exists', async () => {
+            const expectedContent = 'my-content';
+            await fs.promises.writeFile(fileName, expectedContent);
+            await service.compactAndMerge([fileName], newFileName);
+            expect(fs.existsSync(newFileName)).toBe(true);
+        });
+
+        test('should remove compacted file', async () => {
+            const expectedContent = 'my-content';
+            await fs.promises.writeFile(fileName, expectedContent);
+            await service.compactAndMerge([fileName], newFileName);
+            expect(fs.existsSync(fileName)).toBe(false);
         });
     });
 });

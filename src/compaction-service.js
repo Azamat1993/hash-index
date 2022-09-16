@@ -80,6 +80,74 @@ class CompactionService {
             // removes pre-compaction file
             await fs.promises.unlink(fileName);
     }
+
+    async compactAndMerge(fileNames, newFileName) {
+            if (!Array.isArray(fileNames)) {
+                utils.exception('File names should be of type array');
+            }
+
+            if (fileNames.length === 0) {
+                utils.exception('File names should not be empty');
+            }
+
+            utils.required(fileNames, 'File names is required');
+            utils.required(newFileName, 'New File name is required');
+
+            try {
+                await this._checkFilesExist(fileNames);
+            } catch(err) {
+                utils.exception('Provided files should exist');
+            }
+
+            try {
+                await fs.promises.access(newFileName);
+
+                utils.exception(`New file ${newFileName} should not exist`);
+            } catch (err) {
+                if (err.code === 'ENOENT')
+                    await fs.promises.writeFile(newFileName, '');
+                else utils.exception(err.message);
+            }
+
+            let newFileContents = '';
+
+            await fs.promises.writeFile(newFileName, newFileContents);
+
+            // removes pre-compaction file
+            await this._removeFiles(fileNames);
+    }
+
+    async _removeFiles(fileNames) {
+        return this._handleFiles(fileNames, (fileName) => fs.promises.unlink(fileName));
+    }
+
+    async _handleFiles(fileNames, promiseFn) {
+        return new Promise((resolve, reject) => {
+            let resolvedAmount = 0;
+            let shouldHandle = true;
+
+            for(let i = 0; i < fileNames.length; i++) {
+                // checks whether file exists.
+                promiseFn(fileNames[i]).then(file => {
+                    if(shouldHandle) {
+                        resolvedAmount++;
+                    }
+
+                    if (resolvedAmount === fileNames.length) {
+                        resolve(true);
+                    }
+                }).catch(err => {
+                    if (shouldHandle) {
+                        reject(err);
+                    }
+                });   
+            }
+        });
+    }
+
+    async _checkFilesExist(fileNames) {
+        return this._handleFiles(fileNames, (fileName) => fs.promises.access(fileName));
+    }
 }
 
 module.exports = CompactionService;
