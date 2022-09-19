@@ -74,6 +74,12 @@ describe(CompactionService.name, () => {
 
     describe('#compactAndMerge', () => {
         const fileNameDuplicated = fileName + '-duplicated';
+
+        afterEach(() => {
+            if (fs.existsSync(fileNameDuplicated))
+                fs.unlinkSync(fileNameDuplicated);
+        });
+
         test('should throw an error, if provided files does not exist', async () => {
             await expect(service.compactAndMerge([fileName, fileName2], '')).rejects.toThrow();
         });
@@ -116,6 +122,19 @@ describe(CompactionService.name, () => {
             const contentFile1 = 'key:value\\nkey2:value2';
             const contentFile2 = 'key3:value3\\nkey4:value4';
             const expectedContent = contentFile1 + '\\n' + contentFile2;
+            await fs.promises.writeFile(fileName, contentFile1);
+            await fs.promises.writeFile(fileNameDuplicated, contentFile2);
+
+            await service.compactAndMerge([fileName, fileNameDuplicated], newFileName);
+
+            const newFileContent = await fs.promises.readFile(newFileName, 'utf-8');
+            expect(newFileContent).toBe(expectedContent);
+        });
+
+        test('should merge duplicated values', async () => {
+            const contentFile1 = 'key:value\\nkey2:value2';
+            const contentFile2 = 'key:value\\nkey4:value4';
+            const expectedContent = 'key2:value2\\nkey:value\\nkey4:value4';
             await fs.promises.writeFile(fileName, contentFile1);
             await fs.promises.writeFile(fileNameDuplicated, contentFile2);
 

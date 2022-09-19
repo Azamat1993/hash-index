@@ -18,64 +18,9 @@ class CompactionService {
                 else utils.exception(err.message);
             }
 
-            const map = new Map();
-            const queue = [];
-
             const contents = await fs.promises.readFile(fileName, { encoding: 'utf-8'});
-            const parts = contents.split('\\n');
 
-            let currentOffset = 0;
-
-            for(let i = 0; i < parts.length; i++) {
-                const part = parts[i];
-
-                if (part) {
-                    const key = utils.getKeyFromPart(part);
-
-                    map.set(key, currentOffset);
-
-                    currentOffset += part.length;
-                    currentOffset += '\\n'.length;
-
-                    queue.push(key);
-                }
-            }
-
-            const visited = new Set();
-            const stack = [];
-
-            for (let i = queue.length - 1; i >= 0; i--) {
-                const key = queue[i];
-
-                if (!visited.has(key)) {
-                    stack.push(key);
-                    visited.add(key);
-                }
-            }
-
-            let newFileContents = '';
-
-            while (stack.length > 0) {
-                const key = stack.pop();
-                const offset = map.get(key);
-
-                let value = '';
-
-                for (let j = offset; j < contents.length; j++) {
-                    if ((j + 1) < contents.length && (contents[j] === '\\' && contents[j + 1] === 'n')) {
-                        break;
-                    }
-                    value += contents[j];
-                }
-
-                newFileContents += value;
-                
-                if (stack.length > 0) {
-                    newFileContents += '\\n';
-                }
-            }
-
-            await fs.promises.writeFile(newFileName, newFileContents);
+            await fs.promises.writeFile(newFileName, this._doCompact(contents));
 
             // removes pre-compaction file
             await fs.promises.unlink(fileName);
@@ -109,7 +54,22 @@ class CompactionService {
                 else utils.exception(err.message);
             }
 
-            let newFileContents = '';
+            const doCompactRec = async (index, mergedContents) => {
+                if (index === fileNames.length) {
+                    return mergedContents;
+                } else {
+                    const contents = await fs.promises.readFile(fileNames[index], { encoding: 'utf-8'});
+                    let newContent = '';
+
+                    if (mergedContents === '') {
+                        newContent = contents;
+                    } else {
+                        newContent = mergedContents + '\\n' + contents;
+                    }
+                    return doCompactRec(index + 1, this._doCompact(newContent));
+                }
+            }
+            const newFileContents = await doCompactRec(0, '');
 
             await fs.promises.writeFile(newFileName, newFileContents);
 
@@ -147,6 +107,65 @@ class CompactionService {
 
     async _checkFilesExist(fileNames) {
         return this._handleFiles(fileNames, (fileName) => fs.promises.access(fileName));
+    }
+
+    _doCompact(text) {
+        const parts = text.split('\\n');
+
+        const map = new Map();
+        const queue = [];
+
+        let currentOffset = 0;
+
+        for(let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+
+            if (part) {
+                const key = utils.getKeyFromPart(part);
+
+                map.set(key, currentOffset);
+
+                currentOffset += part.length;
+                currentOffset += '\\n'.length;
+
+                queue.push(key);
+            }
+        }
+
+        const visited = new Set();
+        const stack = [];
+
+        for (let i = queue.length - 1; i >= 0; i--) {
+            const key = queue[i];
+
+            if (!visited.has(key)) {
+                stack.push(key);
+                visited.add(key);
+            }
+        }
+
+        let newFileContents = '';
+
+        while (stack.length > 0) {
+            const key = stack.pop();
+            const offset = map.get(key);
+
+            let value = '';
+
+            for (let j = offset; j < text.length; j++) {
+                if ((j + 1) < text.length && (text[j] === '\\' && text[j + 1] === 'n')) {
+                    break;
+                }
+                value += text[j];
+            }
+
+            newFileContents += value;
+            
+            if (stack.length > 0) {
+                newFileContents += '\\n';
+            }
+        }
+        return newFileContents;
     }
 }
 
